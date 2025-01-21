@@ -1,0 +1,10 @@
+[login]
+type = "qrcode" # 登录b站方式
+cache = "./data/credential.json" # 登录凭证缓存文件
+
+[lottery]
+ids = [
+    3546833284500074, 3546703753906662, 3546641116170453
+] # 抽奖转发号ID列表
+advance_time = 0 # 提前秒开始抽奖，0直接开抽，如果设置的大于抽奖截止时间，则直接开抽
+dynamic_deep = 31 # 动态爬取深度(天)
