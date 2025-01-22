@@ -1,11 +1,9 @@
 import toml
-import os
 
 __VERSION__ = '0.0.1'
-__DB__ = './data/dyn_lottery.db' # sqlacodegen --outfile orm.py sqlite:///./data/dyn_lottery.db
+__DB__ = 'sqlite:///./data/dyn_lottery.db' # sqlacodegen --outfile database.py sqlite:///./data/dyn_lottery.db
 
 settings = toml.load('./data/setting.toml')
-
 def get(key: str):
     """
     根据点式路径获取配置

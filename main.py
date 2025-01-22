@@ -5,26 +5,17 @@ import config
 import util.scheduler
 import util.dynamics
 
-async def get_new_dynamics():
+async def update_dynamics():
     """
-    获取转发号池中所有新动态，进行处理后存入数据库
+    更新数据库中存储的抽奖动态
     """
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), '----开始获取新动态----')
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), '----开始抓取动态----')
+
     ids = config.get('lottery.ids')
+    for uid in ids:
+        await util.dynamics.get_user_new_dynamics(uid)
 
-    for id in ids:
-        print(id)
-        user_info, dynamic_list, has_more, next_offset, last_time = await util.dynamics.get_repost_dynamic(id)
-        print(user_info)
-        print(dynamic_list)
-        print(has_more)
-        print(next_offset)
-        print(last_time)
-
-        asyncio.sleep(10)
-
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), '----获取新动态结束----')
-
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), '----动态抓取结束----')
 
 async def auto_lottery():
     """
@@ -39,8 +30,10 @@ async def main():
     """
     主函数，设置定时任务
     """
+    await update_dynamics()
+
     # 添加定时任务，每6小时执行一次
-    await util.scheduler.add_job(get_new_dynamics, 'get_new_dynamics', 'interval', hours=6)
+    await util.scheduler.add_job(update_dynamics, 'update_dynamics', 'interval', hours=6)
     await util.scheduler.add_job(auto_lottery, 'auto_lottery', 'interval', hours=6)
 
     try:
@@ -49,6 +42,7 @@ async def main():
     except (KeyboardInterrupt, SystemExit):
         util.scheduler.stop()
         asyncio.get_event_loop().stop()
+
 
 if __name__ == '__main__':
     asyncio.run(main())

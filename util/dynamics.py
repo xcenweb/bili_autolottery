@@ -1,6 +1,8 @@
-# 对抽奖号动态进行获取操作
+# 对抽奖转发号动态进行获取操作
+import datetime
+from timeit import repeat
 import config
-from util import login
+from util import login, database
 
 import json
 import time
@@ -9,7 +11,7 @@ from bilibili_api import user, dynamic, comment
 from bilibili_api.user import RelationType
 from bilibili_api.comment import CommentResourceType
 
-ids = config.get('lottery.ids') # 抽奖号id池
+
 
 async def get_repost_dynamic(uid, offset=0):
     """
@@ -45,15 +47,15 @@ async def get_repost_dynamic(uid, offset=0):
 
         dynamic_list.append({
             'repost': {
-                'id': desc.get('dynamic_id'), # 转发动态id
+                'id': desc.get('dynamic_id'), # 动态id
                 'content': desc.get('content'), # 转发时附言
-                'time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(desc.get('timestamp'))), # 转发时间
+                'timestamp': desc.get('timestamp'), # 转发时间
             },
             'origin': {
                 'id': desc.get('orig_dy_id'), # 原动态id
                 'content': origin.get('item').get('description') or origin.get('item').get('content'), # 原动态内容
                 'user': {
-                    'id': origin_user['info']['uid'], # 原动态up的id
+                    'id': origin_user['info']['uid'], # 原动态up的uid
                     'name': origin_user['info']['uname'], # 原动态up的昵称
                     'avatar': origin_user['info']['face'], # 原动态up的头像
                     'level': origin_user['level_info']['current_level'], # 原动态up的等级
@@ -67,11 +69,58 @@ async def get_repost_dynamic(uid, offset=0):
         'avatar': user_profile['info']['face'], # 抽奖转发号头像
         'level': user_profile['level_info']['current_level'], # 抽奖转发号等级
     }
-    last_time = dynamic_list[-1]['repost']['time']
 
-    print(f'转发动态数量：{len(dynamic_list)}，是否还有下一篇：{has_more}，下一篇动态id：{next_offset}, 最后一条动态时间：{last_time}')
+    print(f'抓取转发动态数量：{len(dynamic_list)}，是否还有下一篇：{has_more}，下一篇动态id：{next_offset}, 最后一条动态时间：{last_time}')
 
-    return user_info, dynamic_list, has_more, next_offset, last_time
+    return user_info, dynamic_list, has_more, next_offset
+
+
+async def get_user_dynamics(uid):
+    """
+    获取一个用户的 新动态/全部动态 处理后存储进数据库
+    :param uid: 用户ID
+    :return: 用户信息, 动态列表
+    """
+    dynamic_deep = config.get('dynamic.deep') # 最大天数
+    this_ts = int(time.time() * 1000)
+    offset = 0
+
+    while True:
+        user_info, dynamic_list, has_more, next_offset = await get_repost_dynamic(uid, offset)
+
+        if not database.exist_user(uid):
+            database.insert_user(
+                uid=user_info['id'],
+                name=user_info['name'],
+                face=user_info['avatar'],
+                level=user_info['level'],
+            )
+
+        for dyn in dynamic_list:
+            dyn_id = dyn['origin']['id']
+            repost_ts = dyn['repost']['timestamp']
+
+            if this_ts - repost_ts > dynamic_deep * 24 * 60 * 60 * 1000:
+                print(f'动态 {dyn_id} 超过最大天数，退出')
+                has_more = 0
+                break
+
+            if database.exist_dynamic(dyn_id):
+                print(f'动态 {dyn_id} 已存在，跳过')
+                continue
+            else:
+                database.insert_dynamic(dyn)
+                print(f'动态 {dyn_id} 插入成功')
+
+        if has_more == 1:
+            offset = next_offset
+            asyncio.sleep(15)
+            continue
+        else:
+            break
+
+    return True
+
 
 
 async def participate_lottery(dyn_id: int, up_id: int):

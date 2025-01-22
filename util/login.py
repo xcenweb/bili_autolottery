@@ -55,8 +55,6 @@ def get_credential() -> Credential:
         return get_cache()
 
 
-### 登录方式 ###
-
 def qrcode_login() -> Credential:
     """
     使用二维码登录
