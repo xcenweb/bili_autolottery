@@ -1,3 +1,4 @@
+import stat
 import config
 from datetime import datetime
 from sqlalchemy import create_engine
@@ -29,12 +30,15 @@ def exist_user(uid):
         user = conn.execute(RepostUsers.__table__.select().where(RepostUsers.uid == uid)).all()
         return user
 
-def insert_dynamic(dyn):
+def insert_dynamic(dynamic_id, up_uid, type, content, gift_list, public_time, due_time, status):
     """
     增加一条动态
     """
     with db.connect() as conn:
-        conn.execute(LotteryDynamics.__table__.insert().values(**dyn))
+        conn.execute(LotteryDynamics.__table__.insert().values(
+            dynamic_id=dynamic_id, up_uid=up_uid, type=type, content=content, gift_list=gift_list,
+            public_time=public_time, due_time=due_time, status=status, create_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
         return conn.commit()
 
 def insert_up(uid, name, face, level):

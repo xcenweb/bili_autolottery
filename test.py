@@ -1,5 +1,8 @@
-import util.database
+import util.dynamics
+import asyncio
 
-util.database.insert_user(1, 'test', 'test', 1)
-if not util.database.exist_user(1):
-    print(1)
+async def main():
+    await util.dynamics.get_user_dynamics(3546703753906662)
+
+if __name__ == '__main__':
+    asyncio.run(main())
