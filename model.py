@@ -15,11 +15,12 @@ class LotteryDynamics(Base):
     type: Mapped[str] = mapped_column(Text)
     content: Mapped[str] = mapped_column(Text)
     public_time: Mapped[str] = mapped_column(Text)
+    create_time: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Text, server_default=text("'pending'"))
-    create_time: Mapped[str] = mapped_column(Text, server_default=text("strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')"))
     id: Mapped[Optional[int]] = mapped_column(Integer, primary_key=True)
     gift_list: Mapped[Optional[str]] = mapped_column(Text)
     due_time: Mapped[Optional[str]] = mapped_column(Text)
+    auto_time: Mapped[Optional[str]] = mapped_column(Text)
 
 
 class RepostUsers(Base):

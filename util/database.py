@@ -60,3 +60,23 @@ def insert_user(uid, name, face, level):
             uid=uid, name=name, face=face, level=level, create_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), update_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ))
         return conn.commit()
+
+def update_status(dynamic_id, status):
+    """
+    更新动态状态
+    """
+    with db.connect() as conn:
+        conn.execute(
+            LotteryDynamics.__table__.update()
+            .where(LotteryDynamics.dynamic_id == dynamic_id)
+            .values(status=status)
+        )
+        conn.commit()
+
+def get_status_dynamic(status):
+    """
+    获取指定状态的动态列表
+    """
+    with db.connect() as conn:
+        dyn = conn.execute(LotteryDynamics.__table__.select().where(LotteryDynamics.status == status)).all()
+        return dyn

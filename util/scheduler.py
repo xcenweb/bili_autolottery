@@ -1,10 +1,21 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+import asyncio
 
 scheduler = AsyncIOScheduler()
-scheduler.start()
 
-# 打印日志函数
+def start():
+    """启动调度器"""
+    if not scheduler.running:
+        scheduler.start()
+
+def stop():
+    """
+    停止调度器
+    """
+    if scheduler.running:
+        scheduler.shutdown()
+
 def log_message(message, task_name=None):
     """
     打印日志信息，统一格式。
@@ -38,7 +49,7 @@ async def remove_job_by_name(task_name):
     jobs = scheduler.get_jobs()
     found = False
     for job in jobs:
-        if job.args[0] == task_name:  # 通过任务名称进行匹配
+        if job.name == task_name:  # 通过任务名称进行匹配
             job.remove()
             log_message("任务已删除", task_name)
             found = True
@@ -56,7 +67,7 @@ async def list_jobs():
     if not jobs:
         log_message("没有任务在运行")
     for job in jobs:
-        log_message(f"任务 ID: {job.id}, 任务名称: {job.args[0]}, 触发器: {job.trigger}", job.args[0])
+        log_message(f"任务 ID: {job.id}, 任务名称: {job.name}, 触发器: {job.trigger}", job.name)
 
 async def modify_job_by_name(task_name, trigger, **kwargs):
     """
@@ -69,33 +80,10 @@ async def modify_job_by_name(task_name, trigger, **kwargs):
     jobs = scheduler.get_jobs()
     found = False
     for job in jobs:
-        if job.args[0] == task_name:  # 通过任务名称进行匹配
-            # 使用 reschedule() 更新任务的触发器
+        if job.name == task_name:
             job.reschedule(trigger, **kwargs)
             log_message(f"任务的触发器已修改为 {trigger} {kwargs}", task_name)
             found = True
             break
     if not found:
         log_message("任务不存在", task_name)
-
-def stop():
-    scheduler.shutdown()
-
-
-# 添加任务
-# await util.scheduler.add_job("task_1", "interval", seconds=5)  # 每5秒执行一次
-# await util.scheduler.add_job("task_2", "interval", seconds=10)  # 每10秒执行一次
-
-# # 列出所有任务
-# await util.scheduler.list_jobs()
-
-# # 修改任务1的触发器，改为每3秒执行一次
-# await asyncio.sleep(6)  # 等待任务1执行一轮
-# await util.scheduler.modify_job_by_name("task_1", "interval", seconds=3)
-
-# # 删除任务
-# await asyncio.sleep(6)  # 等待任务1执行一轮
-# await util.scheduler.remove_job_by_name("task_2")
-
-# # 列出所有任务
-# await util.scheduler.list_jobs()
