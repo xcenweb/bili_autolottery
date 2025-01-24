@@ -1,11 +1,12 @@
 # 对抽奖文章进行解析处理
-
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+from datetime import datetime
 from zhipuai import ZhipuAI
 import json
 
 client = ZhipuAI(api_key="32c6da5d1ee49a35f49af6342e1daac6.SGBjVGhijpCYJFrb")
 
-def ai_parse_content(content) -> dict:
+def ai_parse_content(content) -> dict|bool:
     """
     通过 LLM 对普通抽奖内容进行解析处理
     :param content: 抽奖内容
@@ -22,7 +23,6 @@ def ai_parse_content(content) -> dict:
 
     response_text = response.choices[0].message.content.strip()
     try:
-        # 如果返回的是 "false"，返回空字典
         if response_text.lower() == "false":
             return False
         return json.loads(response_text)
@@ -30,9 +30,115 @@ def ai_parse_content(content) -> dict:
         print(f"JSON parsing error: {e}")
         return False
 
+def parse_lottery_end_time(end_time_str: str) -> str:
+    """
+    解析抽奖结束时间，将文字转化为标准时间格式。
+    """
+    try:
+        # 将中文日期字符串转换为标准日期格式
+        end_time_str = end_time_str.replace('年', '-').replace('月', '-').replace('日', '').replace(' ', ' ')
+        end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M')
+        return end_time.strftime('%Y-%m-%d %H:%M:%S')
+    except ValueError as e:
+        print(f"日期解析错误: {e}")
+        return None
 
-def web_parse_gifts(dyn_id) -> list:
+def parse_lottery_condition(condition_text: str) -> list:
     """
-    通过无头浏览器爬取动态抽奖奖品信息
+    解析抽奖条件，将文字转化为操作列表。
     """
-    pass
+    conditions = []
+    condition_text = condition_text.lower()
+
+    if '关注' in condition_text or 'follow' in condition_text:
+        conditions.append("follow")
+    if '评论' in condition_text or 'comment' in condition_text:
+        conditions.append("comment")
+    if '点赞' in condition_text or 'like' in condition_text:
+        conditions.append("like")
+    if '转发' in condition_text or 'repost' in condition_text:
+        conditions.append("repost")
+
+    return conditions
+
+def web_parse_lottery(business_id: str):
+    """
+    浏览器爬取抽奖结果
+    """
+    url = f"https://www.bilibili.com/h5/lottery/result?business_type=1&business_id={business_id}&isWeb=1"
+
+    try:
+        with sync_playwright() as p:
+            # 启动浏览器
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+
+            try:
+                # 跳转到目标页面
+                page.goto(url, timeout=10000)  # 10秒超时
+                # 等待页面加载完成，可以调整等待的元素选择器
+                page.wait_for_selector("#app > div > div > div.lottery-result__content > div > div.lottery__section.line.desc > div:nth-child(1) > div.lottery__desc__value", timeout=10000)
+
+                # 获取抽奖结束时间
+                end_time_element = page.query_selector("#app > div > div > div.lottery-result__content > div > div.lottery__section.line.desc > div:nth-child(1) > div.lottery__desc__value")
+                if end_time_element:
+                    end_time_text = end_time_element.inner_text().strip()
+                    formatted_end_time = parse_lottery_end_time(end_time_text)
+                else:
+                    print("未找到抽奖结束时间元素")
+                    formatted_end_time = None
+
+                # 获取抽奖条件
+                condition_element = page.query_selector("#app > div > div > div.lottery-result__content > div > div.lottery__section.line.desc > div:nth-child(2) > div.lottery__desc__value")
+                if condition_element:
+                    lottery_condition_text = condition_element.inner_text().strip()
+                    lottery_condition = parse_lottery_condition(lottery_condition_text)
+                else:
+                    print("未找到抽奖条件元素")
+                    lottery_condition = None
+
+                # 获取奖品列表
+                prize_list_element = page.query_selector(".prizes__list")
+                prize_list = []
+                if prize_list_element:
+                    prize_elements = prize_list_element.query_selector_all(".prize")
+                    for prize_element in prize_elements:
+                        prize_picture = prize_element.query_selector(".prize__picture .prize-picture").get_attribute("style")
+                        prize_level = prize_element.query_selector(".prize__level").inner_text().strip()
+                        prize_desc = prize_element.query_selector(".prize__desc").inner_text().strip()
+
+                        if prize_picture:
+                            image_url = prize_picture.split('url(')[1].split(')')[0].replace("&quot;", '"')
+                        else:
+                            image_url = None
+
+                        prize_list.append({
+                            "level": prize_level,
+                            "description": prize_desc,
+                            "image_url": image_url
+                        })
+                else:
+                    print("未找到奖品列表元素")
+
+                # 关闭浏览器
+                browser.close()
+
+                # 返回结果
+                return {
+                    "end_time": formatted_end_time,
+                    "lottery_condition": lottery_condition,
+                    "prizes": prize_list
+                }
+
+            except PlaywrightTimeoutError as e:
+                print(f"页面加载或元素定位超时: {e}")
+                browser.close()
+                return None
+            except Exception as e:
+                print(f"页面处理过程中发生错误: {e}")
+                browser.close()
+                return None
+
+    except Exception as e:
+        print(f"浏览器启动或初始化错误: {e}")
+        return None

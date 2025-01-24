@@ -30,14 +30,14 @@ def exist_user(uid):
         user = conn.execute(RepostUsers.__table__.select().where(RepostUsers.uid == uid)).all()
         return user
 
-def insert_dynamic(dynamic_id, up_uid, type, content, gift_list, public_time, due_time, status):
+def insert_dynamic(dynamic_id, up_uid, type, content, gift_list, status, due_time, auto_time):
     """
     增加一条动态
     """
     with db.connect() as conn:
         conn.execute(LotteryDynamics.__table__.insert().values(
-            dynamic_id=dynamic_id, up_uid=up_uid, type=type, content=content, gift_list=gift_list,
-            public_time=public_time, due_time=due_time, status=status, create_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            dynamic_id=dynamic_id, up_uid=up_uid, type=type, content=content, gift_list=gift_list,due_time=due_time,
+            create_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"), auto_time=auto_time, status=status
         ))
         return conn.commit()
 
