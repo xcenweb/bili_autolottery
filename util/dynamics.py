@@ -144,8 +144,14 @@ async def get_user_dynamics(uid):
 
 
 async def parse_content(dyn_content, dyn_id):
+    """
+    解析动态内容
+    :param dyn_content: 动态内容
+    :param dyn_id: 动态id
+    :return: type, gifts, due_time, auto_time
+    """
     content = process.ai_parse_content(dyn_content['origin']['content'])
-    advance_time = config.get('dynamic.advance_time') # 提前秒
+    advance_seconds = config.get('lottery.advance_seconds') * 60 # 提前的分钟数
 
     if content:
         # ai获取到了信息，尝试解析
@@ -160,17 +166,17 @@ async def parse_content(dyn_content, dyn_id):
         if due_time:
             type = json.dumps(type)
             gifts = json.dumps(gifts)
-            # 抽奖结束时间
-            due_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S")
+            # 计划抽奖时间 due_time转为时间戳
+            auto_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S") - advance_seconds
 
-    # ai获取不到信息，从浏览器抓取
+            return type, gifts, due_time, auto_time
+
+    # ai获取不全信息，从浏览器直接抓取
     data = process.web_parse_lottery(dyn_id)
     type = data['type']
     gifts = data['gifts']
     due_time = data['due_time']
-    auto_time = due_time - advance_time
-
-
+    auto_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S") - advance_seconds
 
     return type, gifts, due_time, auto_time
 

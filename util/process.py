@@ -31,9 +31,6 @@ def ai_parse_content(content) -> dict|bool:
         return False
 
 def parse_lottery_end_time(end_time_str: str) -> str:
-    """
-    解析抽奖结束时间，将文字转化为标准时间格式。
-    """
     try:
         # 将中文日期字符串转换为标准日期格式
         end_time_str = end_time_str.replace('年', '-').replace('月', '-').replace('日', '').replace(' ', ' ')
@@ -62,9 +59,6 @@ def parse_lottery_condition(condition_text: str) -> list:
     return conditions
 
 def web_parse_lottery(business_id: str):
-    """
-    浏览器爬取抽奖结果
-    """
     url = f"https://www.bilibili.com/h5/lottery/result?business_type=1&business_id={business_id}&isWeb=1"
 
     try:
@@ -103,19 +97,12 @@ def web_parse_lottery(business_id: str):
                 if prize_list_element:
                     prize_elements = prize_list_element.query_selector_all(".prize")
                     for prize_element in prize_elements:
-                        prize_picture = prize_element.query_selector(".prize__picture .prize-picture").get_attribute("style")
                         prize_level = prize_element.query_selector(".prize__level").inner_text().strip()
                         prize_desc = prize_element.query_selector(".prize__desc").inner_text().strip()
 
-                        if prize_picture:
-                            image_url = prize_picture.split('url(')[1].split(')')[0].replace("&quot;", '"')
-                        else:
-                            image_url = None
-
                         prize_list.append({
-                            "level": prize_level,
-                            "description": prize_desc,
-                            "image_url": image_url
+                            "remark": prize_level,  # 奖品等级
+                            "gift": prize_desc      # 奖品描述
                         })
                 else:
                     print("未找到奖品列表元素")
@@ -123,11 +110,11 @@ def web_parse_lottery(business_id: str):
                 # 关闭浏览器
                 browser.close()
 
-                # 返回结果
+                # 返回指定格式的结果
                 return {
-                    "end_time": formatted_end_time,
-                    "lottery_condition": lottery_condition,
-                    "prizes": prize_list
+                    "type": lottery_condition or [],
+                    "gifts": prize_list,
+                    "due_time": formatted_end_time or ""
                 }
 
             except PlaywrightTimeoutError as e:
