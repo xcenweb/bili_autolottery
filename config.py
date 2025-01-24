@@ -1,7 +1,9 @@
+# 项目配置
+
 import toml
 
-__VERSION__ = '0.0.1'
-__DB__ = 'sqlite:///./data/dyn_lottery.db' # sqlacodegen --outfile database.py sqlite:///./data/dyn_lottery.db
+__VERSION__ = '0.0.2'
+__DB__ = 'sqlite:///./data/dyn_lottery.db' # sqlacodegen --outfile model.py sqlite:///./data/dyn_lottery.db
 
 settings = toml.load('./data/setting.toml')
 def get(key: str):

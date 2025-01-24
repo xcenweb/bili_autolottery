@@ -14,7 +14,6 @@ class LotteryDynamics(Base):
     up_uid: Mapped[int] = mapped_column(Integer)
     type: Mapped[str] = mapped_column(Text)
     content: Mapped[str] = mapped_column(Text)
-    public_time: Mapped[str] = mapped_column(Text)
     create_time: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Text, server_default=text("'pending'"))
     id: Mapped[Optional[int]] = mapped_column(Integer, primary_key=True)

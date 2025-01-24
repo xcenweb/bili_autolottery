@@ -1,4 +1,5 @@
-# 对抽奖转发号动态进行获取操作
+# 对抽奖转发号动态进行获取
+
 import asyncio
 import datetime
 import config
@@ -78,7 +79,7 @@ async def get_repost_dynamic(uid, offset=0):
 async def get_user_dynamics(uid):
     """
     获取一个用户的全部转发动态处理后存储进数据库
-    :param uid: 用户ID
+    :param uid 用户ID
     :return: 用户信息, 动态列表
     """
     dynamic_deep = config.get('dynamic.deep') # 最大天数
@@ -102,7 +103,7 @@ async def get_user_dynamics(uid):
             repost_ts = dyn['repost']['timestamp']
 
             if this_ts - repost_ts > dynamic_deep * 24 * 60 * 60:
-                print(f'动态 {dyn_id} 超过最大天数，退出')
+                print(f'用户动态 {dyn_id} 超过最大天数，退出')
                 has_more = 0
                 break
 
@@ -115,9 +116,8 @@ async def get_user_dynamics(uid):
                 )
 
             if database.exist_dynamic(dyn_id):
-                print(f'动态 {dyn_id} 数据库已存在，跳过')
+                print(f'动态 {dyn_id} 已存在于数据库，跳过')
                 continue
-
 
             type, gifts, due_time, auto_time = await parse_content(dyn['origin']['content'], dyn_id)
 
@@ -129,7 +129,7 @@ async def get_user_dynamics(uid):
                 gift_list=gifts,
                 due_time=due_time,
                 auto_time=auto_time,
-                status='pending', # 抽奖状态：pending(等待开奖)、completed(已开奖)、due(过期)、instantly(立即抽奖)
+                status='pending', # 抽奖状态：pending(待分配任务)、instantly(立即抽奖)、completed(已开奖)、due(已过期)
             )
             print(f'动态 {dyn_id} 插入成功')
 
@@ -155,6 +155,7 @@ async def parse_content(dyn_content, dyn_id):
 
     if content:
         # ai获取到了信息，尝试解析
+        print('ai获取到了信息，尝试解析')
         type = content['type']
         gifts = content['gifts']
         due_time = content['due_time']
@@ -168,16 +169,15 @@ async def parse_content(dyn_content, dyn_id):
             gifts = json.dumps(gifts)
             # 计划抽奖时间 due_time转为时间戳
             auto_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S") - advance_seconds
-
             return type, gifts, due_time, auto_time
 
     # ai获取不全信息，从浏览器直接抓取
+    print('ai获取不全信息，从浏览器直接抓取')
     data = process.web_parse_lottery(dyn_id)
     type = data['type']
     gifts = data['gifts']
     due_time = data['due_time']
     auto_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S") - advance_seconds
-
     return type, gifts, due_time, auto_time
 
 

@@ -1,4 +1,5 @@
-import stat
+# 便捷操作数据库
+
 import config
 from datetime import datetime
 from sqlalchemy import create_engine

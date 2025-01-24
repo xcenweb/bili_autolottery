@@ -102,7 +102,7 @@ def get_lottery_details(business_id: str):
         return None
 
 # 示例调用函数，传入业务ID
-business_id = "1017387180157304853"  # 替换为你的业务ID
+business_id = "1012603175036780583"  # 替换为你的业务ID
 lottery_details = get_lottery_details(business_id)
 
 if lottery_details:

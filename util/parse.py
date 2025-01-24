@@ -1,4 +1,5 @@
-# 对抽奖文章进行解析处理
+# 对抽奖文章进行ai或爬虫解析
+
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 from datetime import datetime
 from zhipuai import ZhipuAI

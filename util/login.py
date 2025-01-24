@@ -1,14 +1,15 @@
-# 处理登录
+# 处理b站登录
 
 import os
 import json
 import config
 
-from bilibili_api import login, user, sync
+from bilibili_api import login
 from bilibili_api.login import Credential
 
 
 login_cacheFile = os.getcwd() + config.get('login.cache')
+login_type = config.get('login.type')
 
 
 def get_cache() -> Credential:
@@ -45,7 +46,7 @@ def get_credential() -> Credential:
     """
     # 若不存在缓存或登录失效，则重新登录
     if not os.path.exists(login_cacheFile) or get_cache() is None:
-        if config.get('login.type') == 'qrcode':
+        if login_type == 'qrcode':
             credential = qrcode_login()
         else:
             raise Exception('登录方式不受支持')
