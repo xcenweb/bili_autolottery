@@ -11,7 +11,8 @@ requires-python = ">=3.11,<4"
 dependencies = [
     "bilibili-api-dev (>=16.2.0b1,<17.0.0)",
     "aiosqlite (>=0.21.0,<0.22.0)",
-    "aiomysql (>=0.2.0,<0.3.0)"
+    "aiomysql (>=0.2.0,<0.3.0)",
+    "toml (>=0.10.2,<0.11.0)"
 ]
 
 
