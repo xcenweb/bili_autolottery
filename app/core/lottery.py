@@ -4,7 +4,7 @@
 
 from bilibili_api.login import login
 
-async def participate(dyn_id: int, up_id: int, method: [str]):
+async def part(dyn_id: int, up_id: int, method: [str]):
     """
     参加抽奖
     :param dyn_id: 抽奖动态id
@@ -21,12 +21,16 @@ async def participate(dyn_id: int, up_id: int, method: [str]):
         pass
 
     if 'like' in method:
+        # 动态点赞
         await dyn.set_like(status=True)
     if 'comment' in method:
+        # 动态评论
         await comment.send_comment(text="测试1下", oid=dyn_id, type_=CommentResourceType.DYNAMIC, credential=login.get_credential())
     if 'repost' in method:
+        # 动态转发
         await dyn.repost(text="转发动态")
     if 'follow' in method:
+        # 关注up
         await usr.modify_relation(RelationType.FOLLOW)
 
     return True

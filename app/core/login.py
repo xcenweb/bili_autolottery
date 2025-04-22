@@ -47,8 +47,10 @@ def get_credential() -> Credential:
         if login_type == 'qrcode':
             credential = qrcode_login()
         else:
-            raise Exception('登录方式不受支持')
+            print('请先配置正确的登录方式')
+            return None
         if credential is None:
+            print('登录失败')
             return None
         set_cache(credential)
         return credential
