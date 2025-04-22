@@ -44,7 +44,7 @@ async def test_get_db_session():
 
 async def main():
     await test_get_db_session()
-    await engine.dispose() # Explicitly dispose the engine
+    await engine.dispose()
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -13,3 +13,4 @@ dyn_content = """
 """
 
 ai_result = ai_parse(dyn_content)
+print(ai_result)

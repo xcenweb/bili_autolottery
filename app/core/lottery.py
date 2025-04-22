@@ -1,6 +1,7 @@
 """
 抽奖操作
 """
+
 from bilibili_api.login import login
 
 async def participate(dyn_id: int, up_id: int, method: [str]):

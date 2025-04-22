@@ -12,6 +12,7 @@ cd bili_autolottery
 ```shell
 pip install poetry
 poetry install
+playwright install
 ```
 
 ```shell

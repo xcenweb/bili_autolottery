@@ -43,12 +43,13 @@ def get_credential() -> Credential:
     """
     获取登录凭证
     """
-    # 若不存在缓存或登录失效，则重新登录
     if not os.path.exists(login_cacheFile) or get_cache() is None:
         if login_type == 'qrcode':
             credential = qrcode_login()
         else:
             raise Exception('登录方式不受支持')
+        if credential is None:
+            return None
         set_cache(credential)
         return credential
     else:
@@ -60,11 +61,9 @@ def qrcode_login() -> Credential:
     使用二维码登录
     """
     credential = login.login_with_qrcode()
-
     try:
         credential.raise_for_no_bili_jct()
         credential.raise_for_no_sessdata()
     except Exception as e:
-        raise Exception('扫码登录失败')
-
+        return None
     return credential
