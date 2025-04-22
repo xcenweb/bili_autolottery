@@ -1,17 +1,17 @@
 [project]
 name = "bili-autolottery"
 version = "0.1.0"
-description = "bilibili全自动抽奖工具"
+description = "b站全自动抽奖"
 authors = [
     {name = "xcenweb"}
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<4"
 dependencies = [
-    "sqlacodegen (>=3.0.0,<4.0.0)",
-    "sqlalchemy (>=2.0.40,<3.0.0)",
-    "toml (>=0.10.2,<0.11.0)",
+    "bilibili-api-dev (>=16.2.0b1,<17.0.0)",
+    "aiosqlite (>=0.21.0,<0.22.0)",
+    "aiomysql (>=0.2.0,<0.3.0)"
 ]
 
 
