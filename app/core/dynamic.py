@@ -1,8 +1,10 @@
-# 对抽奖转发号动态进行获取
+"""
+动态
+"""
 
 import asyncio
 import datetime
-import config
+import app.config as config
 from util import login, database, process
 
 import json
@@ -37,7 +39,7 @@ async def get_repost_dynamic(uid, offset=0):
             continue
 
         if card.get('item').get('miss') == 1:
-            print('源动态被隐藏或删除，跳过')
+            print('原动态被隐藏或删除，跳过')
             continue
 
         user_profile = desc.get('user_profile') # 转发动态用户信息
@@ -78,13 +80,13 @@ async def get_repost_dynamic(uid, offset=0):
 
 async def get_user_dynamics(uid):
     """
-    获取一个用户的全部转发动态处理后存储进数据库
+    获取一个用户的全部转发动态，处理后存储进数据库
     :param uid 用户ID
     :return: 用户信息, 动态列表
     """
-    dynamic_deep = config.get('dynamic.deep') # 最大天数
-    this_ts = int(time.time())
-    offset = 0
+    dynamic_deep = config.get('dynamicSpider.deep') # 最大天数
+    this_ts = int(time.time()) # 当前时间戳
+    offset = 0 # 偏移量
 
     while True:
         user_info, dynamic_list, has_more, next_offset = await get_repost_dynamic(uid, offset)
@@ -103,7 +105,7 @@ async def get_user_dynamics(uid):
             repost_ts = dyn['repost']['timestamp']
 
             if this_ts - repost_ts > dynamic_deep * 24 * 60 * 60:
-                print(f'用户动态 {dyn_id} 超过最大天数，退出')
+                print(f'动态 {dyn_id} 超过最大天数限制，退出')
                 has_more = 0
                 break
 
@@ -167,7 +169,7 @@ async def parse_content(dyn_content, dyn_id):
         if due_time:
             type = json.dumps(type)
             gifts = json.dumps(gifts)
-            # 计划抽奖时间 due_time转为时间戳
+            # 计划抽奖时间
             auto_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S") - advance_seconds
             return type, gifts, due_time, auto_time
 
@@ -178,30 +180,7 @@ async def parse_content(dyn_content, dyn_id):
     gifts = data['gifts']
     due_time = data['due_time']
     auto_time = datetime.fromisoformat(due_time).strftime("%Y-%m-%d %H:%M:%S") - advance_seconds
+
     return type, gifts, due_time, auto_time
 
 
-async def participate_lottery(dyn_id: int, up_id: int):
-    """
-    参加抽奖, 关注+点赞+评论+转发
-    :param dyn_id: 抽奖动态id
-    :param up_id: 抽奖up的id
-    """
-    dyn = dynamic.Dynamic(dyn_id, login.get_credential())
-    usr = user.User(up_id, login.get_credential())
-
-    try:
-        await usr.modify_relation(RelationType.SUBSCRIBE)
-    except Exception as e:
-        pass
-
-    time.sleep(1.5)
-    await dyn.set_like(status=True)
-
-    time.sleep(1.5)
-    await comment.send_comment(text="测试1下", oid=dyn_id, type_=CommentResourceType.DYNAMIC, credential=login.get_credential())
-
-    time.sleep(1.5)
-    await dyn.repost(text="转发动态")
-
-    return True

@@ -1,22 +1,21 @@
-# 处理b站登录
+"""
+登录
+"""
 
 import os
 import json
-import config
+import app.config as config
 
 from bilibili_api import login
 from bilibili_api.login import Credential
 
-
-login_cacheFile = os.getcwd() + config.get('login.cache')
 login_type = config.get('login.type')
-
+login_cacheFile = os.getcwd() + config.get('login.cache')
 
 def get_cache() -> Credential:
     """
     获取credential缓存
     """
-    # 如果存在缓存，则直接读取
     try:
         d = json.load(open(login_cacheFile, mode='r'))
         if d == {}:

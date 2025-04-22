@@ -14,5 +14,5 @@ cache = "./data/credential.json" # 登录凭证缓存文件
 url = "mysql+aiomysql://root:root@localhost:3306/bili_lottery" # 数据库地址
 
 [zhipuai]
-api_key = "32c6da5d1ee49a35f49af6342e1daac6.SGBjVGhijpCYJFrb" # 智谱的API-Key
+api_key = "" # 智谱的API-Key
 model = "GLM-4-Flash" # 选择的模型

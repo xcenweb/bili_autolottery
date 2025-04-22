@@ -1,4 +1,8 @@
 __pycache__/
 .conda/
+
 .research/
 .vscode/
+
+data/setting.toml
+data/credential.json

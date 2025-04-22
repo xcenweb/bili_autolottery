@@ -1,4 +1,6 @@
-# 便捷操作数据库
+"""
+数据库操作
+"""
 
 import config
 from datetime import datetime

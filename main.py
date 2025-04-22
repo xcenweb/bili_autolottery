@@ -1,22 +1,20 @@
-# 主程序
-
 import asyncio
 from datetime import datetime
 
 import config
-import util.scheduler
-import util.dynamics
-from test_auto import auto_lottery
+
+import app.core.dynamics as dynamics
+import app.utils.scheduler as scheduler
 
 async def update_dynamics():
     """
-    更新动态数据
+    更新和爬取动态数据
     """
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), '----开始抓取动态----')
 
     ids = config.get('lottery.ids')
     for uid in ids:
-        await util.dynamics.get_repost_dynamic(uid)
+        await dynamics.get_repost_dynamic(uid)
 
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), '----动态抓取结束----')
 
@@ -27,9 +25,10 @@ async def main():
     """
     util.scheduler.start()
 
-    # 添加定时任务，每6小时执行一次
-    await util.scheduler.add_job(update_dynamics, 'update_dynamics', 'interval', hours=6)
-    await util.scheduler.add_job(auto_lottery, 'auto_lottery', 'interval', hours=6, minutes=45)
+    # 定时任务
+    await util.scheduler.add_job(update_dynamics, 'update_dynamics', 'interval', hours=6) # 每6小时执行一次爬取动态
+
+    # 当前定时任务列表
     await util.scheduler.list_jobs()
 
     try:
@@ -37,6 +36,7 @@ async def main():
     except (KeyboardInterrupt, SystemExit):
         util.scheduler.stop()
         asyncio.get_event_loop().stop()
+
 
 if __name__ == '__main__':
     asyncio.run(main())

@@ -1,4 +1,7 @@
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+"""
+对抽奖详情页进行爬取解析
+"""
+from playwright.sync_api import sync_playwright
 from datetime import datetime
 
 def parse_lottery_end_time(end_time_str: str) -> str:
@@ -11,7 +14,7 @@ def parse_lottery_end_time(end_time_str: str) -> str:
         print(f"日期解析错误: {e}")
         return None
 
-def parse_lottery_condition(condition_text: str) -> list:
+def parse_condition(condition_text: str) -> list:
     """
     解析抽奖条件，将文字转化为操作列表。
     """
@@ -29,8 +32,16 @@ def parse_lottery_condition(condition_text: str) -> list:
 
     return conditions
 
-def get_lottery_details(business_id: str):
-    url = f"https://www.bilibili.com/h5/lottery/result?business_type=1&business_id={business_id}&isWeb=1"
+
+def web_parse(business_id: str):
+    """
+    通过 playwright 直接解析抽奖内容
+    :param business_id: 抽奖业务id
+    :return: 处理后的抽奖内容
+    """
+
+    url = f"https://www.bilibili.com/h5/lottery/result?business_type=1&business_id={business_id}"
+    print("Parse Web Url：", url)
 
     try:
         with sync_playwright() as p:
@@ -57,7 +68,7 @@ def get_lottery_details(business_id: str):
                 condition_element = page.query_selector("#app > div > div > div.lottery-result__content > div > div.lottery__section.line.desc > div:nth-child(2) > div.lottery__desc__value")
                 if condition_element:
                     lottery_condition_text = condition_element.inner_text().strip()
-                    lottery_condition = parse_lottery_condition(lottery_condition_text)
+                    lottery_condition = parse_condition(lottery_condition_text)
                 else:
                     print("未找到抽奖条件元素")
                     lottery_condition = None
@@ -83,29 +94,14 @@ def get_lottery_details(business_id: str):
 
                 # 返回指定格式的结果
                 return {
-                    "type": lottery_condition or [],
+                    "method": lottery_condition or [],
                     "gifts": prize_list,
                     "due_time": formatted_end_time or ""
                 }
-
-            except PlaywrightTimeoutError as e:
-                print(f"页面加载或元素定位超时: {e}")
-                browser.close()
-                return None
             except Exception as e:
                 print(f"页面处理过程中发生错误: {e}")
                 browser.close()
                 return None
-
     except Exception as e:
         print(f"浏览器启动或初始化错误: {e}")
         return None
-
-# 示例调用函数，传入业务ID
-business_id = "1012603175036780583"  # 替换为你的业务ID
-lottery_details = get_lottery_details(business_id)
-
-if lottery_details:
-    print(lottery_details)
-else:
-    print("未能获取抽奖详情")
