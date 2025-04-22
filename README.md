@@ -2,7 +2,7 @@
 
 B站全天候、全自动抽奖工具
 
-# 使用方法
+# 部署
 
 ```shell
 git clone github.com/xcenweb/bili_autolottery.git
